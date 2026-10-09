@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+data/cache/
+data/images/
+data/*.log
+output/map/

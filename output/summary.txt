@@ -1,0 +1,29 @@
+/Users/stazh/Library/Application Support/Claude/scratch-workspaces/1d63126f-2415-45eb-ae8b-23caf7d7528d/b146838c-bd57-4fc0-9618-7613bd85757a/scratch-2026-10-09-9aa73f/src/evaluate.py:54: DeprecationWarning: The 'shapely.ops.transform()' function is deprecated. Use 'shapely.transform()' or 'shapely.transform_coordseq()' instead. See https://shapely.readthedocs.io/en/latest/manual.html#shapely.ops.transform for more details.
+  feats.append(dict(type="Feature", geometry=mapping(transform(TO_WGS, poly)), properties=dict(
+/Users/stazh/Library/Application Support/Claude/scratch-workspaces/1d63126f-2415-45eb-ae8b-23caf7d7528d/b146838c-bd57-4fc0-9618-7613bd85757a/scratch-2026-10-09-9aa73f/src/evaluate.py:55: DeprecationWarning: The 'shapely.ops.transform()' function is deprecated. Use 'shapely.transform()' or 'shapely.transform_coordseq()' instead. See https://shapely.readthedocs.io/en/latest/manual.html#shapely.ops.transform for more details.
+  row, names=nm, gt_footprint=mapping(transform(TO_WGS, gt_poly)) if gt_poly else None)))
+
+240 images, localised 121 (50%)
+centre error < 250 m: 49%, 500 m: 50%, 1000 m: 50%, 2000 m: 50%
+median error of localised: 79 m
+
+source  decade   n  loc  <500m  <1km  median
+gis-zh  1980s   18  83%   83%   83%      66
+gis-zh  1990s   20  85%   85%   85%      58
+gis-zh  2000s    2 100%  100%  100%      22
+lubis   1930s   25  24%   24%   24%      61
+lubis   1940s   25  28%   28%   28%      82
+lubis   1950s   25  36%   36%   36%     123
+lubis   1960s   25  64%   64%   64%     168
+lubis   1970s   25  60%   60%   60%     101
+lubis   1980s   25  64%   64%   64%      60
+lubis   1990s   25  16%   16%   16%      83
+lubis   2000s   25  56%   56%   56%      14
+
+confidence  n   correct(<1km)  median error   (inlier range)
+hoch       119     100%         77 m    (73-645)
+mittel       2     100%        200 m    (21-27)
+inliers bin -> precision: 20-25: 100% (n=1), 25-30: 100% (n=1), 60-100: 100% (n=6), 100-1000000: 100% (n=113)
+
+place-name overlap (Jaccard, settlements) for correct localisations: 0.83
+map: /Users/stazh/Library/Application Support/Claude/scratch-workspaces/1d63126f-2415-45eb-ae8b-23caf7d7528d/b146838c-bd57-4fc0-9618-7613bd85757a/scratch-2026-10-09-9aa73f/output/map/index.html  (121 overlays)

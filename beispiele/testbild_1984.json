@@ -1,0 +1,339 @@
+{
+ "image": "testbild_1984.jpg",
+ "status": "ok",
+ "confidence": "hoch",
+ "inliers": 1324,
+ "center_lv95": [
+  2698801.0,
+  1260114.2
+ ],
+ "center_wgs84": [
+  47.484368,
+  8.749567
+ ],
+ "footprint_lv95": [
+  [
+   2696221.0,
+   1262463.2
+  ],
+  [
+   2701174.0,
+   1262661.9
+  ],
+  [
+   2701356.1,
+   1257787.9
+  ],
+  [
+   2696432.3,
+   1257571.1
+  ]
+ ],
+ "side_length_m": 4915,
+ "rotation_deg": 0,
+ "municipalities": [
+  "Elsau",
+  "Illnau-Effretikon",
+  "Winterthur",
+  "Zell (ZH)"
+ ],
+ "places": [
+  {
+   "name": "Winterthur",
+   "type": "Ort",
+   "category": "Siedlung",
+   "e": 2697947.0,
+   "n": 1261571.0
+  },
+  {
+   "name": "Iberg",
+   "type": "Ort",
+   "category": "Siedlung",
+   "e": 2700963.0,
+   "n": 1257870.0
+  },
+  {
+   "name": "Mattenbach",
+   "type": "Ortsteil",
+   "category": "Siedlung",
+   "e": 2698367.0,
+   "n": 1260985.0
+  },
+  {
+   "name": "Seen",
+   "type": "Ortsteil",
+   "category": "Siedlung",
+   "e": 2699926.0,
+   "n": 1260231.0
+  },
+  {
+   "name": "Sennhof (Winterthur)",
+   "type": "Ort",
+   "category": "Siedlung",
+   "e": 2699381.0,
+   "n": 1258279.0
+  },
+  {
+   "name": "Stadt",
+   "type": "Ortsteil",
+   "category": "Siedlung",
+   "e": 2697021.0,
+   "n": 1261848.0
+  },
+  {
+   "name": "Büelwiesen",
+   "type": "Quartier",
+   "category": "Quartier",
+   "e": 2699977.0,
+   "n": 1260025.0
+  },
+  {
+   "name": "Deutweg",
+   "type": "Quartier",
+   "category": "Quartier",
+   "e": 2698163.0,
+   "n": 1261144.0
+  },
+  {
+   "name": "Endliker",
+   "type": "Quartier",
+   "category": "Quartier",
+   "e": 2698793.0,
+   "n": 1260552.0
+  },
+  {
+   "name": "Ganzenbühl",
+   "type": "Quartier",
+   "category": "Quartier",
+   "e": 2700018.0,
+   "n": 1259613.0
+  },
+  {
+   "name": "Gotzenwil",
+   "type": "Ort",
+   "category": "Siedlung",
+   "e": 2700929.0,
+   "n": 1258843.0
+  },
+  {
+   "name": "Grüze",
+   "type": "Quartier",
+   "category": "Quartier",
+   "e": 2699293.0,
+   "n": 1261769.0
+  },
+  {
+   "name": "Gutschick",
+   "type": "Quartier",
+   "category": "Quartier",
+   "e": 2699003.0,
+   "n": 1260839.0
+  },
+  {
+   "name": "Hegi",
+   "type": "Quartier",
+   "category": "Quartier",
+   "e": 2700556.0,
+   "n": 1262384.0
+  },
+  {
+   "name": "Heiligberg",
+   "type": "Quartier",
+   "category": "Quartier",
+   "e": 2696662.0,
+   "n": 1261147.0
+  },
+  {
+   "name": "Neuwiesen",
+   "type": "Quartier",
+   "category": "Quartier",
+   "e": 2696427.0,
+   "n": 1262104.0
+  },
+  {
+   "name": "Oberseen",
+   "type": "Quartier",
+   "category": "Quartier",
+   "e": 2700634.0,
+   "n": 1259882.0
+  },
+  {
+   "name": "Talacker",
+   "type": "Quartier",
+   "category": "Quartier",
+   "e": 2698908.0,
+   "n": 1262482.0
+  },
+  {
+   "name": "Waser",
+   "type": "Quartier",
+   "category": "Quartier",
+   "e": 2699620.0,
+   "n": 1260682.0
+  },
+  {
+   "name": "Altstadt",
+   "type": "Quartier",
+   "category": "Quartier",
+   "e": 2697206.0,
+   "n": 1261720.0
+  },
+  {
+   "name": "Waldegg",
+   "type": "Quartier",
+   "category": "Quartier",
+   "e": 2699101.0,
+   "n": 1260087.0
+  },
+  {
+   "name": "Weierhöhe",
+   "type": "Ort",
+   "category": "Siedlung",
+   "e": 2700394.0,
+   "n": 1258659.0
+  },
+  {
+   "name": "Grinen",
+   "type": "Ort",
+   "category": "Siedlung",
+   "e": 2700051.0,
+   "n": 1258584.0
+  },
+  {
+   "name": "Mulchlingen",
+   "type": "Ort",
+   "category": "Siedlung",
+   "e": 2700317.0,
+   "n": 1258016.0
+  },
+  {
+   "name": "Weier",
+   "type": "Ort",
+   "category": "Siedlung",
+   "e": 2700728.0,
+   "n": 1258556.0
+  },
+  {
+   "name": "Bruderhaus",
+   "type": "Ort",
+   "category": "Siedlung",
+   "e": 2697064.0,
+   "n": 1259300.0
+  },
+  {
+   "name": "Eschenberg",
+   "type": "Ort",
+   "category": "Siedlung",
+   "e": 2698487.0,
+   "n": 1259179.0
+  },
+  {
+   "name": "Paradis",
+   "type": "Ort",
+   "category": "Siedlung",
+   "e": 2698998.0,
+   "n": 1259653.0
+  },
+  {
+   "name": "Sennhütte",
+   "type": "Ort",
+   "category": "Siedlung",
+   "e": 2700825.0,
+   "n": 1258381.0
+  },
+  {
+   "name": "Sonnenberg",
+   "type": "Quartier",
+   "category": "Quartier",
+   "e": 2700252.0,
+   "n": 1260618.0
+  },
+  {
+   "name": "Sternenweiher",
+   "type": "See",
+   "category": "Gewässer",
+   "e": 2696570.0,
+   "n": 1258988.0
+  },
+  {
+   "name": "Ziegelhütte",
+   "type": "Ort",
+   "category": "Siedlung",
+   "e": 2700289.0,
+   "n": 1258964.0
+  },
+  {
+   "name": "Vogelsang",
+   "type": "Quartierteil",
+   "category": "Quartier",
+   "e": 2696377.0,
+   "n": 1260551.0
+  },
+  {
+   "name": "Mülau",
+   "type": "Quartier",
+   "category": "Quartier",
+   "e": 2699302.0,
+   "n": 1258124.0
+  },
+  {
+   "name": "Breite",
+   "type": "Quartierteil",
+   "category": "Quartier",
+   "e": 2697083.0,
+   "n": 1260736.0
+  },
+  {
+   "name": "Etzberg",
+   "type": "Quartierteil",
+   "category": "Quartier",
+   "e": 2699918.0,
+   "n": 1260971.0
+  },
+  {
+   "name": "Eulach",
+   "type": "Fliessgewaesser",
+   "category": "Gewässer",
+   "e": 2700617.0,
+   "n": 1262488.0
+  },
+  {
+   "name": "Hinterer Chrebsbach",
+   "type": "Fliessgewaesser",
+   "category": "Gewässer",
+   "e": 2697198.0,
+   "n": 1259316.0
+  },
+  {
+   "name": "Im Grüntal",
+   "type": "Quartierteil",
+   "category": "Quartier",
+   "e": 2700426.0,
+   "n": 1259769.0
+  },
+  {
+   "name": "Im Schützenbühl",
+   "type": "Quartierteil",
+   "category": "Quartier",
+   "e": 2699978.0,
+   "n": 1259474.0
+  }
+ ],
+ "image_to_lv95_homography": [
+  [
+   9.048363403018845,
+   9.258617151918736,
+   2696220.9512170665
+  ],
+  [
+   3.0089992662802785,
+   1.4029644029237496,
+   1262463.1739871975
+  ],
+  [
+   2.2923095182168236e-06,
+   3.387868401724714e-06,
+   1.0
+  ]
+ ]
+}

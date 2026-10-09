@@ -1,0 +1,181 @@
+<title>Luftbild-Verortung Zürich</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/*LEAFLET_CSS*/
+/* Layout: working tool — list + detail on the left, map on the right; stacked on phones. */
+:root{
+  --bg:#f3f5f2; --panel:#ffffff; --ink:#1a1f1c; --mute:#5f6862; --line:#dde2dc; --soft:#eef1ed;
+  --accent:#0e6b66; --sel:#e3f0ee;
+  --ok:#2f7d32; --warn:#a86a00; --bad:#b3261e;
+  --f-display:"IBM Plex Sans Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111412;--panel:#191d1b;--ink:#e6ebe7;--mute:#9aa49d;--line:#2c322e;--soft:#202522;--accent:#4fc1b8;--sel:#1d302d;--ok:#6cc070;--warn:#e0a63a;--bad:#f07a70;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#111412;--panel:#191d1b;--ink:#e6ebe7;--mute:#9aa49d;--line:#2c322e;--soft:#202522;--accent:#4fc1b8;--sel:#1d302d;--ok:#6cc070;--warn:#e0a63a;--bad:#f07a70;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 var(--f-body)}
+#app{display:grid;grid-template-columns:minmax(300px,380px) 1fr;height:100%}
+aside{display:flex;flex-direction:column;border-right:1px solid var(--line);background:var(--panel);min-height:0;min-width:0}
+header{padding:16px 16px 12px;border-bottom:1px solid var(--line);display:grid;gap:8px}
+h1{font:600 20px/1.15 var(--f-display);margin:0;letter-spacing:.01em;text-wrap:balance}
+.sub{color:var(--mute);font-size:12.5px;max-width:60ch}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.stat{background:var(--soft);border-radius:6px;padding:6px 8px;min-width:0}
+.stat b{display:block;font:500 16px/1.2 var(--f-mono);font-variant-numeric:tabular-nums}
+.stat span{font-size:11px;color:var(--mute)}
+.controls{display:flex;gap:6px;flex-wrap:wrap;padding:10px 16px;border-bottom:1px solid var(--line);align-items:center}
+select,button{font:inherit;font-size:12.5px;background:var(--soft);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:4px 8px;cursor:pointer}
+select:focus-visible,button:focus-visible,input:focus-visible,.item:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+label{font-size:12.5px;color:var(--mute);display:flex;align-items:center;gap:6px}
+input[type=range]{accent-color:var(--accent);width:110px}
+.fade{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--mute)}
+#count{font-size:12px;color:var(--mute);margin-left:auto;font-variant-numeric:tabular-nums}
+#list{overflow:auto;flex:1;min-height:0}
+.item{display:grid;grid-template-columns:52px 1fr auto;gap:10px;padding:8px 16px;border-bottom:1px solid var(--line);cursor:pointer;align-items:center}
+.item:hover{background:var(--soft)}.item.sel{background:var(--sel)}
+.item img{width:52px;height:52px;object-fit:cover;border-radius:4px;background:var(--line)}
+.item .t{font-weight:600;font-variant-numeric:tabular-nums}
+.item .t small{font-weight:400;color:var(--mute)}
+.item .m{font-size:12px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.item>div{min-width:0}
+.badge{font:500 11px/1 var(--f-mono);padding:3px 6px;border-radius:10px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.b-good{color:var(--ok);border:1px solid var(--ok)}.b-mid{color:var(--warn);border:1px solid var(--warn)}.b-bad,.b-fail{color:var(--bad);border:1px solid var(--bad)}
+.cf{font-size:10.5px;margin-top:4px;text-align:right;letter-spacing:.04em;text-transform:uppercase}
+.cf-hoch{color:var(--ok)}.cf-mittel{color:var(--warn)}.cf-tief{color:var(--bad)}
+#detail{border-top:1px solid var(--line);padding:12px 16px;max-height:45%;overflow:auto}
+#detail h2{font:600 16px/1.2 var(--f-display);margin:0 0 8px}
+#detail table{width:100%;font-size:12.5px;border-collapse:collapse}
+#detail td{padding:2px 0;vertical-align:top}#detail td:first-child{color:var(--mute);width:104px}
+.mono{font-family:var(--f-mono);font-size:12px}
+.names{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.chip{font-size:12px;padding:2px 8px;border-radius:10px;background:var(--soft);border:1px solid var(--line);cursor:pointer;color:var(--ink)}
+.chip small{color:var(--mute)}
+.hint{color:var(--mute);font-size:12.5px;margin:0}
+main{min-width:0;position:relative}
+#map{height:100%;width:100%;background:var(--soft)}
+.legend{background:var(--panel);color:var(--ink);padding:8px 10px;border-radius:6px;font-size:12px;line-height:1.7;box-shadow:0 1px 4px rgba(0,0,0,.25)}
+.sw{display:inline-block;width:16px;height:0;border-top:2px solid;vertical-align:middle;margin-right:6px}
+.leaflet-tooltip.nm{font:11px var(--f-body);padding:1px 5px}
+.leaflet-container{font-family:var(--f-body)}
+@media (max-width:760px){
+  #app{grid-template-columns:1fr;grid-template-rows:52vh auto;height:auto}
+  main{order:1;height:52vh}aside{order:2;border-right:0;border-top:1px solid var(--line)}
+  #list{max-height:60vh}#detail{max-height:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div id="app">
+<aside>
+  <header>
+    <h1>Historische Luftbilder · Kanton Zürich</h1>
+    <div class="sub">Pilot: Jedes Bild wurde nur anhand seiner Pixel verortet, ohne Metadaten. Rot ist die Vorhersage, grün der Umriss laut Archiv (Ground Truth).</div>
+    <div class="stats" id="stats"></div>
+  </header>
+  <div class="controls">
+    <select id="fDec" aria-label="Jahrzehnt"><option value="">Alle Jahrzehnte</option></select>
+    <select id="fConf" aria-label="Konfidenz"><option value="">Alle Konfidenzen</option><option value="hoch">nur hohe Konfidenz</option><option value="hm">hoch + mittel</option><option value="review">Nacharbeiten</option></select>
+    <select id="fStat" aria-label="Fehler"><option value="">Alle Fehler</option><option value="good">&lt; 500 m</option><option value="mid">500 m – 2 km</option><option value="bad">&gt; 2 km</option><option value="fail">nicht verortet</option></select>
+    <label><input type="checkbox" id="allOv"> alle Bilder einblenden</label>
+    <div class="fade"><span>heute</span><input type="range" id="op" min="0" max="100" value="100" aria-label="Überblenden heute bis damals"><span>damals</span></div>
+    <span id="count"></span>
+  </div>
+  <div id="list"></div>
+  <div id="detail"><p class="hint">Bild in der Liste oder auf der Karte wählen. Der Regler blendet zwischen dem historischen Bild und dem heutigen Orthofoto über.</p></div>
+</aside>
+<main><div id="map"></div></main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>/*DATA*/</script>
+<script>
+const D = window.DATA, B = window.BASE;
+const map = L.map('map', {zoomSnap:0.5, minZoom:9, maxZoom:17});
+L.imageOverlay(B.url, B.bounds, {attribution:'Orthofoto und Luftbilder © <a href="https://www.swisstopo.admin.ch">swisstopo</a>, GIS-ZH'}).addTo(map);
+map.fitBounds(B.bounds);
+map.setMaxBounds(L.latLngBounds(B.bounds).pad(0.2));
+const lg = L.control({position:'bottomright'});
+lg.onAdd = () => { const d = L.DomUtil.create('div','legend'); d.innerHTML =
+  '<div><span class="sw" style="border-color:#22b04b;border-top-style:dashed"></span>Umriss laut Archiv</div>'+
+  '<div><span class="sw" style="border-color:#e0402f"></span>Vorhersage (gestrichelt: tiefere Konfidenz)</div>'+
+  '<div><span class="sw" style="border-color:#f2a71b;width:8px;border-top-width:8px;border-radius:4px"></span>Ortsname im Bild</div>'; return d; };
+lg.addTo(map);
+
+const fmt = m => m == null ? '–' : m < 1000 ? `${m} m` : `${(m/1000).toFixed(1)} km`;
+const cls = it => it.status !== 'ok' ? 'fail' : it.error_m < 500 ? 'good' : it.error_m < 2000 ? 'mid' : 'bad';
+const badge = it => `<span class="badge b-${cls(it)}">${it.status==='ok'?fmt(it.error_m):'offen'}</span>`;
+
+(() => { const n = D.length, ok = D.filter(d=>d.status==='ok');
+  const wrong = ok.filter(d=>d.error_m>=1000).length;
+  const med = ok.length ? ok.map(d=>d.error_m).sort((a,b)=>a-b)[Math.floor(ok.length/2)] : null;
+  document.getElementById('stats').innerHTML = [[n,'Bilder'],[`${Math.round(100*ok.length/n)} %`,'verortet'],[fmt(med),'Median-Fehler'],[wrong,'falsch (> 1 km)']]
+    .map(([a,b])=>`<div class="stat"><b>${a}</b><span>${b}</span></div>`).join(''); })();
+const decs = [...new Set(D.map(d=>Math.floor(d.year/10)*10))].sort();
+document.getElementById('fDec').innerHTML += decs.map(d=>`<option value="${d}">${d}er</option>`).join('');
+
+const gtL = L.layerGroup().addTo(map), prL = L.layerGroup().addTo(map), ovL = L.layerGroup().addTo(map), nmL = L.layerGroup().addTo(map);
+const ovs = {}, nows = {}; let sel = null;
+const opacity = () => document.getElementById('op').value/100;
+const ovOf = it => ovs[it.id] ||= L.imageOverlay(`overlays/${it.id}.webp`, it.bounds, {opacity:opacity(), zIndex:3});
+const nowOf = it => nows[it.id] ||= L.imageOverlay(`overlays/${it.id}_heute.webp`, it.bounds, {zIndex:2});
+function visible(){
+  const dec = document.getElementById('fDec').value, st = document.getElementById('fStat').value, cf = document.getElementById('fConf').value;
+  const confOk = d => !cf || (cf==='hoch' && d.conf==='hoch') || (cf==='hm' && (d.conf==='hoch'||d.conf==='mittel')) || (cf==='review' && (d.status!=='ok' || d.conf==='tief'));
+  return D.filter(d => (!dec || Math.floor(d.year/10)*10 == dec) && (!st || cls(d) === st) && confOk(d));
+}
+function draw(){
+  const v = visible(); gtL.clearLayers(); prL.clearLayers(); ovL.clearLayers();
+  const all = document.getElementById('allOv').checked;
+  v.forEach(it => {
+    if (it.gt_poly) L.polygon(it.gt_poly, {color:'#22b04b', weight:1.5, fill:false, dashArray:'4 3', interactive:false}).addTo(gtL);
+    if (it.poly) {
+      L.polygon(it.poly, {color:'#e0402f', weight:it===sel?3:1.5, fillOpacity:0, dashArray: it.conf==='hoch'?null:'6 4'}).on('click',()=>select(it)).addTo(prL);
+      if (it===sel) { nowOf(it).addTo(ovL); ovOf(it).addTo(ovL); }
+      else if (all) ovOf(it).addTo(ovL);
+    }
+  });
+  document.getElementById('count').textContent = `${v.length} von ${D.length}`;
+  document.getElementById('list').innerHTML = v.map(it => `<div class="item${it===sel?' sel':''}" data-id="${it.id}" tabindex="0" role="button">
+    <img loading="lazy" src="${it.thumb}" alt="">
+    <div><div class="t">${it.year} <small>· ${it.source==='lubis'?'swisstopo':'GIS-ZH'}</small></div>
+    <div class="m">${it.status==='ok' ? ((it.names||[]).filter(n=>n.c==='Siedlung').slice(0,4).map(n=>n.n).join(', ') || it.municipalities) : 'nicht verortet'}</div></div>
+    <div>${badge(it)}${it.conf?`<div class="cf cf-${it.conf}">${it.conf}</div>`:''}</div></div>`).join('');
+  document.querySelectorAll('.item').forEach(e => { const go = () => select(D.find(d=>d.id===e.dataset.id));
+    e.onclick = go; e.onkeydown = ev => { if (ev.key==='Enter'||ev.key===' ') { ev.preventDefault(); go(); } }; });
+}
+function select(it){
+  sel = it; nmL.clearLayers(); draw();
+  const el = document.querySelector(`.item[data-id="${it.id}"]`); el && el.scrollIntoView({block:'nearest'});
+  const det = document.getElementById('detail');
+  if (it.status !== 'ok') {
+    det.innerHTML = `<h2>${it.year} · nicht verortet</h2><img src="${it.thumb}" alt="" style="width:120px;border-radius:4px"><p class="hint">Kein Kandidat mit genügend geometrisch konsistenten Matches. Grün zeigt die Lage laut Archiv.</p>`;
+    if (it.gt_poly) map.fitBounds(L.polygon(it.gt_poly).getBounds(), {padding:[40,40]});
+    return;
+  }
+  map.fitBounds(L.latLngBounds(it.bounds).extend(it.gt_poly ? L.polygon(it.gt_poly).getBounds() : it.bounds), {padding:[40,40]});
+  let lab = 0;
+  (it.names||[]).forEach(n => L.circleMarker(n.ll, {radius:4, color:'#f2a71b', weight:2, fillOpacity:.85})
+    .bindTooltip(n.n, {permanent: n.c==='Siedlung' && lab++ < 8, direction:'top', className:'nm'}).addTo(nmL));
+  det.innerHTML = `<h2>${it.year} · ${it.date||''}</h2>
+  <table>
+   <tr><td>Konfidenz</td><td><span class="cf-${it.conf}" style="font-weight:600">${it.conf}</span> · ${it.inliers} konsistente Matches</td></tr>
+   <tr><td>Zentrum LV95</td><td class="mono">${it.lv95[0].toFixed(0)} / ${it.lv95[1].toFixed(0)}</td></tr>
+   <tr><td>Zentrum WGS84</td><td class="mono">${it.center[0].toFixed(5)}, ${it.center[1].toFixed(5)}</td></tr>
+   <tr><td>Bildgrösse</td><td>≈ ${fmt(it.side_m)} Seitenlänge</td></tr>
+   <tr><td>Gemeinden</td><td>${it.municipalities||'–'}</td></tr>
+   <tr><td>Abweichung</td><td>${fmt(it.error_m)} vom Archiv-Zentrum${it.iou!=null?` · Überlappung ${Math.round(it.iou*100)} %`:''}</td></tr>
+   <tr><td>Archiv-Nr.</td><td class="mono" style="word-break:break-all">${it.src_id}</td></tr>
+  </table>
+  <div class="names">${(it.names||[]).map((n,i)=>`<button class="chip" data-i="${i}" title="${n.t} · LV95 ${n.lv.join(' / ')}">${n.n} <small>${n.t}</small></button>`).join('')}</div>`;
+  det.querySelectorAll('.chip').forEach(c => c.onclick = () => { const n = it.names[c.dataset.i]; map.setView(n.ll, 15); });
+}
+['fDec','fStat','fConf','allOv'].forEach(id => document.getElementById(id).onchange = draw);
+document.getElementById('op').oninput = () => Object.values(ovs).forEach(o => o.setOpacity(opacity()));
+draw();
+const first = D.find(d => d.status==='ok' && d.conf==='hoch' && d.error_m < 100 && (d.names||[]).length > 5);
+if (first) select(first);
+</script>
