@@ -97,7 +97,7 @@ window.NOTE = "Online-Demo: zuf\u00e4llige Auswahl von 39 der 240 Testbilder; di
 <script>
 const D = window.DATA, B = window.BASE;
 const map = L.map('map', {zoomSnap:0.5, minZoom:9, maxZoom:17});
-L.imageOverlay(B.url, B.bounds, {attribution:'Orthofoto und Luftbilder © <a href="https://www.swisstopo.admin.ch">swisstopo</a>, GIS-ZH'}).addTo(map);
+L.imageOverlay(B.url, B.bounds, {attribution:'Orthofoto und Luftbilder © <a href="https://www.swisstopo.admin.ch">swisstopo</a>, <a href="https://www.zh.ch/de/planen-bauen/geoinformation.html">Kanton Zürich (GIS-ZH)</a>'}).addTo(map);
 map.fitBounds(B.bounds);
 map.setMaxBounds(L.latLngBounds(B.bounds).pad(0.2));
 const lg = L.control({position:'bottomright'});

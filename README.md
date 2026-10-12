@@ -301,5 +301,15 @@ Daten und Ergebnisse:
 
 ## Quellen und Lizenzen
 
-Luftbilder (LUBIS), SWISSIMAGE, swissNAMES3D, swissBOUNDARIES3D © swisstopo, freie Nutzung mit Quellenangabe.
-Historische Luftbilder 1981–2000 © GIS-ZH, Kanton Zürich (`wms.zh.ch/HistLuftZHWMS`).
+Luftbilder (LUBIS), SWISSIMAGE, swissNAMES3D, swissBOUNDARIES3D © swisstopo, freie Nutzung mit Quellenangabe
+([Nutzungsbedingungen](https://www.swisstopo.admin.ch/de/nutzungsbedingungen-kostenlose-geodaten-und-geodienste)).
+Historische Luftbilder 1981–2000 © Kanton Zürich, GIS-ZH (`wms.zh.ch/HistLuftZHWMS`): offene Daten mit der
+opendata.swiss-Nutzungsbedingung «Open use» (auch kommerziell erlaubt, Quellenangabe empfohlen; Stand 12.10.2026,
+[Datensatz](https://opendata.swiss/en/dataset/luftbilder-1981-2000)).
+
+Modelle: DINOv2 steht unter Apache-2.0. SuperPoint (in `ETH-CVG/lightglue_superpoint`) ist nur für akademische oder
+gemeinnützige nichtkommerzielle Forschung lizenziert (Magic Leap; die LightGlue-Model-Card übernimmt das). Das Repo
+verteilt keine Gewichte, sie werden beim ersten Start von Hugging Face geladen. Für einen produktiven Betrieb ist das
+zu klären; auf Hugging Face als Apache-2.0 ausgewiesen sind `zju-community/matchanything_eloftr`,
+`zju-community/efficientloftr` (beide in `src/matching.py` vorgesehen) und `ETH-CVG/lightglue_disk`. Wie gut sie hier
+verorten, ist nicht dokumentiert.
