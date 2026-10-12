@@ -151,6 +151,9 @@ LightGlue ordnet sie zu, alle 4 Drehungen in einem Batch. OpenCV schätzt aus de
 eine Homographie; die Zahl der Inlier ist das Gütemass. Unplausible Lösungen (nicht konvex, Seitenverhältnis > 2, stark
 ungleiche Diagonalen) werden verworfen. Der Kandidat mit den meisten Inliern gewinnt; ab 80 Inliern wird die Suche früh
 abgebrochen, unter 10 gilt das Bild als nicht verortet.
+Findet diese Runde weniger als 20 Inlier, folgt eine feinere Runde über die besten 30 Kandidaten: Referenz mit 1536 px,
+das Abfragebild im Massstab des Kandidatenfensters (960 px). LightGlue verträgt nur etwa Faktor 1,5 Massstabsunterschied;
+bei 1024 px zeigt der Referenzausschnitt ein Bild von 2,4 km auf 4,3 km Kontext und passt nicht mehr.
 
 **Verfeinern.** Zweimal: Referenz exakt um den vorhergesagten Umriss neu holen (1,2 × längste Ausdehnung, 1280 px) und
 erneut abgleichen. Das Ergebnis wird nur übernommen, wenn mindestens 80 % der bisherigen Inlier erreicht werden.
@@ -290,6 +293,7 @@ Daten und Ergebnisse:
 | --- | --- |
 | `data/images/` | Abfragebilder ohne Metadaten (Zufallsnamen); nicht im Repo |
 | `data/gt/ground_truth.json` | Archiv-Metadaten (nur für die Auswertung) |
+| `data/images_stazh/`, `data/gt/stazh_1981.json` | Zusatz-Testset: 30 Bilder von 1981 aus der StAZH-Liste ([src/fetch_stazh.py](src/fetch_stazh.py)); Bilder nicht im Repo |
 | `data/cache/` | Mosaik, Index, Referenzausschnitte, Ortsnamen; nicht im Repo |
 | `output/predictions.json` | Rohvorhersagen inkl. Homographie Bild→LV95 |
 | `output/predictions_pass1.json` | Stand nach dem ersten Durchgang (vor `--retry`) |

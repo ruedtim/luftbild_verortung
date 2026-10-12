@@ -28,6 +28,9 @@ MIN_INLIERS = 10  # below this nothing is reported (confidence is graded later)
 GOOD_ENOUGH = 80   # stop verifying candidates early
 POOL = ThreadPoolExecutor(8)
 SCREEN_PX = 1024   # matching resolution while screening candidates
+FINE_PX = 1536     # second, finer screening pass (only if the first finds < FINE_BELOW inliers)
+FINE_K = 30
+FINE_BELOW = 20
 
 
 def rot_mat(r, w, h):
@@ -60,12 +63,17 @@ def try_match(M, q, r, bb, px=REF_PX):
     return T, n
 
 
-def screen(M, q, bb, px=REF_PX):
-    """Match all 4 rotations against the reference bbox; best (T, inliers, rot)."""
+def screen(M, q, bb, px=REF_PX, size=SCREEN_PX, qsize=None):
+    """Match all 4 rotations against the reference bbox; best (T, inliers, rot).
+
+    The matcher only copes with ~1.5x scale difference. The reference context is EXPAND x
+    the retrieval window, so a query of about window size should be matched at
+    qsize ~ size / EXPAND to get a similar pixel scale (see the fine pass in localize()).
+    """
     h, w = q.shape[:2]
     ref = fetch(bb, px, px)
     best = (None, 0, 0)
-    for r, (k0, k1) in enumerate(M.match_rotations(q, ref, size=SCREEN_PX)):
+    for r, (k0, k1) in enumerate(M.match_rotations(q, ref, size=size, qsize=qsize)):
         H, n, _ = homography(k0, k1)
         rw, rh = (w, h) if r % 2 == 0 else (h, w)
         if H is not None and n > best[1] and plausible(H, rw, rh, px, px):
@@ -89,6 +97,15 @@ def localize(q, M, emb, win, desc, k=K):
             best = dict(n=n, T=T, rot=r, rank=rank, retrieval_score=sc)
         if best["n"] >= GOOD_ENOUGH:
             break
+    if best["n"] < FINE_BELOW:
+        # fine pass: reference at 1536 px, query scaled to the window size (similar pixel scale)
+        list(POOL.map(lambda bb: fetch(bb, FINE_PX, FINE_PX), bbs[:FINE_K]))
+        for rank, ((sc, _, _), bb) in enumerate(zip(cands[:FINE_K], bbs)):
+            T, n, r = screen(M, q, bb, px=FINE_PX, size=FINE_PX, qsize=round(FINE_PX / EXPAND))
+            if n > best["n"]:
+                best = dict(n=n, T=T, rot=r, rank=rank, retrieval_score=sc)
+            if best["n"] >= GOOD_ENOUGH:
+                break
     if best["n"] < MIN_INLIERS:
         return dict(status="not_localized", best_inliers=best["n"])
     # refinement around predicted footprint (2 iterations)

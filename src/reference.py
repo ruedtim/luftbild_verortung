@@ -4,9 +4,11 @@
 * `fetch(bb, px)` – arbitrary bbox at arbitrary resolution (cached) for fine matching
 """
 import hashlib
+import time
 from io import BytesIO
 
 import numpy as np
+import requests
 from PIL import Image
 
 from common import CACHE, S, WMS_CH, canton_zh
@@ -16,13 +18,19 @@ MARGIN = 3000  # m around the canton bbox
 LAYER = "ch.swisstopo.swissimage"
 
 
-def wms(bb, w, h, layer=LAYER):
-    r = S.get(WMS_CH, timeout=120, params=dict(
-        SERVICE="WMS", VERSION="1.3.0", REQUEST="GetMap", LAYERS=layer, STYLES="",
-        CRS="EPSG:2056", BBOX=",".join(f"{v:.2f}" for v in bb), WIDTH=w, HEIGHT=h,
-        FORMAT="image/jpeg"))
-    r.raise_for_status()
-    return np.array(Image.open(BytesIO(r.content)).convert("RGB"))
+def wms(bb, w, h, layer=LAYER, tries=4):
+    for t in range(tries):
+        try:
+            r = S.get(WMS_CH, timeout=120, params=dict(
+                SERVICE="WMS", VERSION="1.3.0", REQUEST="GetMap", LAYERS=layer, STYLES="",
+                CRS="EPSG:2056", BBOX=",".join(f"{v:.2f}" for v in bb), WIDTH=w, HEIGHT=h,
+                FORMAT="image/jpeg"))
+            r.raise_for_status()
+            return np.array(Image.open(BytesIO(r.content)).convert("RGB"))
+        except (requests.RequestException, OSError):  # transient 502/timeouts of the WMS
+            if t == tries - 1:
+                raise
+            time.sleep(2 ** t)
 
 
 def fetch(bb, w, h):
