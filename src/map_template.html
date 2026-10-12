@@ -23,6 +23,7 @@ aside{display:flex;flex-direction:column;border-right:1px solid var(--line);back
 header{padding:16px 16px 12px;border-bottom:1px solid var(--line);display:grid;gap:8px}
 h1{font:600 20px/1.15 var(--f-display);margin:0;letter-spacing:.01em;text-wrap:balance}
 .sub{color:var(--mute);font-size:12.5px;max-width:60ch}
+.sub a{color:var(--accent)}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .stat{background:var(--soft);border-radius:6px;padding:6px 8px;min-width:0}
 .stat b{display:block;font:500 16px/1.2 var(--f-mono);font-variant-numeric:tabular-nums}
@@ -75,6 +76,7 @@ main{min-width:0;position:relative}
     <h1>Historische Luftbilder · Kanton Zürich</h1>
     <div class="sub">Pilot: Jedes Bild wurde nur anhand seiner Pixel verortet, ohne Metadaten. Rot ist die Vorhersage, grün der Umriss laut Archiv (Ground Truth).</div>
     <div class="stats" id="stats"></div>
+    <div class="sub" id="note" hidden></div>
   </header>
   <div class="controls">
     <select id="fDec" aria-label="Jahrzehnt"><option value="">Alle Jahrzehnte</option></select>
@@ -109,11 +111,14 @@ const fmt = m => m == null ? '–' : m < 1000 ? `${m} m` : `${(m/1000).toFixed(1
 const cls = it => it.status !== 'ok' ? 'fail' : it.error_m < 500 ? 'good' : it.error_m < 2000 ? 'mid' : 'bad';
 const badge = it => `<span class="badge b-${cls(it)}">${it.status==='ok'?fmt(it.error_m):'offen'}</span>`;
 
-(() => { const n = D.length, ok = D.filter(d=>d.status==='ok');
-  const wrong = ok.filter(d=>d.error_m>=1000).length;
-  const med = ok.length ? ok.map(d=>d.error_m).sort((a,b)=>a-b)[Math.floor(ok.length/2)] : null;
-  document.getElementById('stats').innerHTML = [[n,'Bilder'],[`${Math.round(100*ok.length/n)} %`,'verortet'],[fmt(med),'Median-Fehler'],[wrong,'falsch (> 1 km)']]
-    .map(([a,b])=>`<div class="stat"><b>${a}</b><span>${b}</span></div>`).join(''); })();
+(() => {
+  // header numbers: all photos of the run (the public demo ships only a sample, so it passes the full-run STATS)
+  const S = window.STATS || (() => { const ok = D.filter(d=>d.status==='ok'), e = ok.map(d=>d.error_m).sort((a,b)=>a-b), h = e.length>>1;
+    return {n:D.length, ok:ok.length, median:e.length ? Math.round(e.length%2 ? e[h] : (e[h-1]+e[h])/2) : null, wrong:ok.filter(d=>d.error_m>=1000).length}; })();
+  document.getElementById('stats').innerHTML = [[S.n,'Bilder'],[`${Math.round(100*S.ok/S.n)} %`,'verortet'],[fmt(S.median),'Median-Fehler'],[S.wrong,'falsch (> 1 km)']]
+    .map(([a,b])=>`<div class="stat"><b>${a}</b><span>${b}</span></div>`).join('');
+  if (window.NOTE) { const nt = document.getElementById('note'); nt.innerHTML = window.NOTE; nt.hidden = false; }
+})();
 const decs = [...new Set(D.map(d=>Math.floor(d.year/10)*10))].sort();
 document.getElementById('fDec').innerHTML += decs.map(d=>`<option value="${d}">${d}er</option>`).join('');
 

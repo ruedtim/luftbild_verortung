@@ -5,11 +5,24 @@ north-up Web-Mercator WebP and laid over a SWISSIMAGE base image. For every phot
 modern SWISSIMAGE crop on the same grid is written too, so the opacity slider
 cross-fades between then and now. Data, thumbnails and the Leaflet CSS are inlined;
 the only other files are the base image and the per-photo WebPs.
+
+    python make_map.py                            # full map -> output/map (index.html, vorschau.html)
+    python make_map.py --demo 40 --out ../docs    # small public demo for GitHub Pages
+
+--demo N keeps only about N random photos (stratified by source and decade, fixed seed) to keep
+the page small; the header statistics still describe all photos. It writes an index.html with a
+complete page skeleton (what Pages serves), leaves out the Google web fonts and adds .nojekyll.
 """
+import argparse
 import base64
 import io
 import json
+import random
+import re
 import shutil
+import statistics
+from collections import defaultdict
+from pathlib import Path
 
 import cv2
 import numpy as np
@@ -19,14 +32,17 @@ from pyproj import Transformer
 from common import CACHE, GT, IMAGES, OUT
 from reference import fetch, mosaic, mosaic_bounds
 
-MAP = OUT / "map"
-OV = MAP / "overlays"
+MAP = OUT / "map"  # default output folder
 LV_TO_WGS = Transformer.from_crs(2056, 4326, always_xy=True)
 LV_TO_MERC = Transformer.from_crs(2056, 3857, always_xy=True)
 MERC_TO_LV = Transformer.from_crs(3857, 2056, always_xy=True)
 MERC_TO_WGS = Transformer.from_crs(3857, 4326, always_xy=True)
 OV_PX = 900
 BASE_RES = 10.0  # m per pixel of the base image (Web Mercator metres)
+DEMO_SEED = 7
+REPO_URL = "https://github.com/ruedtim/luftbild_verortung"
+SKELETON = ("<!doctype html><html lang='de'><head><meta charset='utf-8'>"
+            "<meta name='viewport' content='width=device-width, initial-scale=1'></head><body>")
 
 
 def merc_grid(corners, px):
@@ -73,7 +89,7 @@ def webp(a, f, q=72):
     Image.fromarray(a).save(f, "WEBP", quality=q, method=6)
 
 
-def base_image():
+def base_image(out):
     """Canton-wide SWISSIMAGE mosaic re-projected to Web Mercator at BASE_RES."""
     m, (E0, N1), res = mosaic()
     x0, y0, x1, y1 = mosaic_bounds()
@@ -83,7 +99,7 @@ def base_image():
     e, n, bounds = merc_grid(corners, W)
     u, v = (e - E0) / res, (N1 - n) / res
     a = cv2.remap(m, u.astype(np.float32), v.astype(np.float32), cv2.INTER_AREA)
-    Image.fromarray(a).save(MAP / "base.jpg", quality=66, optimize=True, progressive=True)
+    Image.fromarray(a).save(out / "base.jpg", quality=66, optimize=True, progressive=True)
     return bounds
 
 
@@ -93,18 +109,43 @@ def data_uri(im, q=70):
     return "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode()
 
 
+def demo_sample(ids, gt, n):
+    """About n random ids, stratified by (source, decade) so that every group is represented."""
+    groups = defaultdict(list)
+    for k in sorted(ids):
+        groups[(gt[k]["source"], gt[k]["year"] // 10)].append(k)
+    rnd = random.Random(DEMO_SEED)
+    return {k for v in groups.values() for k in rnd.sample(v, min(len(v), max(1, round(n * len(v) / len(ids)))))}
+
+
+def run_stats(shown, preds, gt, res):
+    """Headline numbers over all shown photos (what the map header displays)."""
+    errs = [res[gt[k]["image"]]["properties"]["error_m"] for k in shown if preds[k]["status"] == "ok"]
+    return dict(n=len(shown), ok=len(errs), median=round(statistics.median(errs)) if errs else None,
+                wrong=sum(e >= 1000 for e in errs))
+
+
 def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--demo", type=int, default=0, metavar="N", help="public demo with about N random photos")
+    ap.add_argument("--out", default=str(MAP), help="output folder (default: output/map)")
+    args = ap.parse_args()
+    out = Path(args.out).resolve()
+    ov = out / "overlays"
+
     gt = json.loads((GT / "ground_truth.json").read_text())
     preds = json.loads((OUT / "predictions.json").read_text())
     res = {f["properties"]["image"]: f for f in json.loads((OUT / "results.geojson").read_text())["features"]}
-    shutil.rmtree(MAP, ignore_errors=True)
-    OV.mkdir(parents=True)
-    base_bounds = base_image()
+    # a prediction newer than results.geojson (run still in progress) is skipped
+    shown = [k for k, p in preds.items() if p["status"] != "ok" or gt[k]["image"] in res]
+    stats = run_stats(shown, preds, gt, res)
+    keep = demo_sample(shown, gt, args.demo) if args.demo else set(shown)
+    shutil.rmtree(ov, ignore_errors=True)
+    ov.mkdir(parents=True)
+    base_bounds = base_image(out)
     items = []
-    for k, p in sorted(preds.items(), key=lambda kv: gt[kv[0]]["year"]):
-        g = gt[k]
-        if p["status"] == "ok" and g["image"] not in res:
-            continue  # prediction newer than results.geojson (run still in progress)
+    for k in sorted((k for k in shown if k in keep), key=lambda k: gt[k]["year"]):
+        p, g = preds[k], gt[k]
         img = np.array(Image.open(IMAGES / g["image"]))
         th = Image.fromarray(img).convert("L")
         th.thumbnail((160, 160))
@@ -116,8 +157,8 @@ def main():
             it["gt_poly"] = [list(reversed(LV_TO_WGS.transform(*c))) for c in ring]
         if p["status"] == "ok":
             rgba, bounds = warp(img, p["T"], p["corners"])
-            webp(rgba, OV / f"{k}.webp")
-            webp(warp_today(p["corners"], rgba[..., 3]), OV / f"{k}_heute.webp")
+            webp(rgba, ov / f"{k}.webp")
+            webp(warp_today(p["corners"], rgba[..., 3]), ov / f"{k}_heute.webp")
             props = res[g["image"]]["properties"]
             it.update(bounds=bounds, poly=[list(reversed(LV_TO_WGS.transform(*c))) for c in p["corners"]],
                       center=[props["lat"], props["lon"]], error_m=props["error_m"], iou=props["iou"],
@@ -129,13 +170,23 @@ def main():
         items.append(it)
     html = (OUT.parent / "src" / "map_template.html").read_text()
     html = html.replace("/*LEAFLET_CSS*/", (CACHE / "leaflet.min.css").read_text())
-    html = html.replace("/*DATA*/", "window.DATA = " + json.dumps(items) + ";\nwindow.BASE = "
-                        + json.dumps(dict(url="base.jpg", bounds=base_bounds)) + ";")
-    (MAP / "index.html").write_text(html)  # published: the artifact host adds the document skeleton
-    (MAP / "vorschau.html").write_text(  # local preview with its own skeleton
-        "<!doctype html><html lang='de'><head><meta charset='utf-8'>"
-        "<meta name='viewport' content='width=device-width, initial-scale=1'></head><body>" + html + "</body></html>")
-    print(f"map: {MAP / 'index.html'}  ({sum(i['status'] == 'ok' for i in items)} overlays)")
+    data = ("window.DATA = " + json.dumps(items) + ";\nwindow.BASE = "
+            + json.dumps(dict(url="base.jpg", bounds=base_bounds)) + ";")
+    if args.demo:
+        note = (f"Online-Demo: zufällige Auswahl von {len(items)} der {stats['n']} Testbilder; die Kennzahlen oben "
+                f"gelten für alle {stats['n']}. <a href='{REPO_URL}'>Code und Dokumentation</a>")
+        data += f"\nwindow.STATS = {json.dumps(stats)};\nwindow.NOTE = {json.dumps(note)};"
+        html = re.sub(r"<link[^>]*fonts\.g[^>]*>\n?", "", html)  # public page: no third-party web fonts
+        html = html.replace("/*DATA*/", data)
+        (out / "index.html").write_text(SKELETON + html + "</body></html>")  # what GitHub Pages serves
+        (out / ".nojekyll").touch()
+    else:
+        html = html.replace("/*DATA*/", data)
+        (out / "index.html").write_text(html)  # published: the artifact host adds the document skeleton
+        (out / "vorschau.html").write_text(SKELETON + html + "</body></html>")  # local preview with its own skeleton
+    size = sum(f.stat().st_size for f in out.rglob("*") if f.is_file())
+    print(f"map: {out / 'index.html'}  ({sum(i['status'] == 'ok' for i in items)} overlays, "
+          f"{len(items)} photos, {size / 1e6:.1f} MB)")
 
 
 if __name__ == "__main__":
