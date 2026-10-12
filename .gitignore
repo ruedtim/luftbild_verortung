@@ -2,5 +2,7 @@
 __pycache__/
 data/cache/
 data/images/
+data/images_stazh/
 data/*.log
+data/*.xlsx
 output/map/

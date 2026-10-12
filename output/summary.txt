@@ -1,29 +1,24 @@
-/Users/stazh/Library/Application Support/Claude/scratch-workspaces/1d63126f-2415-45eb-ae8b-23caf7d7528d/b146838c-bd57-4fc0-9618-7613bd85757a/scratch-2026-10-09-9aa73f/src/evaluate.py:54: DeprecationWarning: The 'shapely.ops.transform()' function is deprecated. Use 'shapely.transform()' or 'shapely.transform_coordseq()' instead. See https://shapely.readthedocs.io/en/latest/manual.html#shapely.ops.transform for more details.
-  feats.append(dict(type="Feature", geometry=mapping(transform(TO_WGS, poly)), properties=dict(
-/Users/stazh/Library/Application Support/Claude/scratch-workspaces/1d63126f-2415-45eb-ae8b-23caf7d7528d/b146838c-bd57-4fc0-9618-7613bd85757a/scratch-2026-10-09-9aa73f/src/evaluate.py:55: DeprecationWarning: The 'shapely.ops.transform()' function is deprecated. Use 'shapely.transform()' or 'shapely.transform_coordseq()' instead. See https://shapely.readthedocs.io/en/latest/manual.html#shapely.ops.transform for more details.
-  row, names=nm, gt_footprint=mapping(transform(TO_WGS, gt_poly)) if gt_poly else None)))
 
-240 images, localised 121 (50%)
-centre error < 250 m: 49%, 500 m: 50%, 1000 m: 50%, 2000 m: 50%
-median error of localised: 79 m
+240 images, localised 140 (58%)
+centre error < 250 m: 57%, 500 m: 58%, 1000 m: 58%, 2000 m: 58%
+median error of localised: 75 m
 
 source  decade   n  loc  <500m  <1km  median
 gis-zh  1980s   18  83%   83%   83%      66
-gis-zh  1990s   20  85%   85%   85%      58
+gis-zh  1990s   20  90%   90%   90%      72
 gis-zh  2000s    2 100%  100%  100%      22
 lubis   1930s   25  24%   24%   24%      61
-lubis   1940s   25  28%   28%   28%      82
-lubis   1950s   25  36%   36%   36%     123
-lubis   1960s   25  64%   64%   64%     168
-lubis   1970s   25  60%   60%   60%     101
-lubis   1980s   25  64%   64%   64%      60
-lubis   1990s   25  16%   16%   16%      83
-lubis   2000s   25  56%   56%   56%      14
+lubis   1940s   25  44%   44%   44%      79
+lubis   1950s   25  40%   40%   40%     122
+lubis   1960s   25  68%   68%   68%     159
+lubis   1970s   25  64%   64%   64%     106
+lubis   1980s   25  76%   76%   76%      60
+lubis   1990s   25  32%   32%   32%      83
+lubis   2000s   25  72%   72%   72%      16
 
 confidence  n   correct(<1km)  median error   (inlier range)
-hoch       119     100%         77 m    (73-645)
-mittel       2     100%        200 m    (21-27)
-inliers bin -> precision: 20-25: 100% (n=1), 25-30: 100% (n=1), 60-100: 100% (n=6), 100-1000000: 100% (n=113)
+hoch       138     100%         75 m    (73-2232)
+mittel       2     100%        130 m    (21-37)
+inliers bin -> precision: 20-25: 100% (n=1), 30-40: 100% (n=1), 60-100: 100% (n=6), 100-1000000: 100% (n=132)
 
 place-name overlap (Jaccard, settlements) for correct localisations: 0.83
-map: /Users/stazh/Library/Application Support/Claude/scratch-workspaces/1d63126f-2415-45eb-ae8b-23caf7d7528d/b146838c-bd57-4fc0-9618-7613bd85757a/scratch-2026-10-09-9aa73f/output/map/index.html  (121 overlays)
