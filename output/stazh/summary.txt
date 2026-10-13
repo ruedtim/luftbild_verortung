@@ -1,0 +1,13 @@
+
+30 images, localised 29 (97%)
+centre error < 250 m: 53%, 500 m: 93%, 1000 m: 97%, 2000 m: 97%
+median error of localised: 234 m
+
+source  decade   n  loc  <500m  <1km  median
+stazh-1981 1980s   30  97%   93%   97%     234
+
+confidence  n   correct(<1km)  median error   (inlier range)
+hoch        29     100%        234 m    (274-1879)
+inliers bin -> precision: 100-1000000: 100% (n=29)
+
+place-name overlap (Jaccard, settlements) for correct localisations: 0.72

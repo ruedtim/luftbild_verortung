@@ -1,6 +1,6 @@
 """Step 2: blind localisation of the stripped aerial photos.
 
-Reads ONLY data/images/*.png (no metadata). For each image:
+Reads ONLY the set's images (data/images/*.png, no metadata). For each image:
   1. DINOv2 retrieval over multi-scale SWISSIMAGE windows -> top-K candidates (+ rotation)
   2. LightGlue (SuperPoint) matching against each candidate, MAGSAC homography
   3. refinement: re-fetch the reference exactly around the predicted footprint, re-match
@@ -16,7 +16,7 @@ import numpy as np
 from PIL import Image
 from tqdm import tqdm
 
-from common import IMAGES, OUT
+from common import SETS
 from matching import Matcher, homography, plausible
 from reference import fetch
 from retrieval import Embedder, build_index, query
@@ -126,16 +126,19 @@ def localize(q, M, emb, win, desc, k=K):
 
 def main():
     ap = argparse.ArgumentParser()
+    ap.add_argument("--set", choices=SETS, default="test", help="image set (default: the 240-image test set)")
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--redo", action="store_true")
     ap.add_argument("--retry", type=int, default=0,
                     help="re-run images without a confident result using this many candidates")
     args = ap.parse_args()
-    out_f = OUT / "predictions.json"
+    cfg = SETS[args.set]
+    cfg["out"].mkdir(parents=True, exist_ok=True)
+    out_f = cfg["out"] / "predictions.json"
     preds = {} if args.redo or not out_f.exists() else json.loads(out_f.read_text())
     win, desc = build_index()
     emb, M = Embedder(), Matcher("lightglue", size=1024)
-    files = sorted(IMAGES.glob("*.png"))
+    files = sorted(cfg["images"].glob("*.png"))
     if args.limit:
         files = files[:args.limit]
     for f in tqdm(files, desc="localize"):
@@ -144,7 +147,11 @@ def main():
             continue
         q = np.array(Image.open(f))
         t = time.time()
-        p = localize(q, M, emb, win, desc, k=args.retry or K)
+        try:
+            p = localize(q, M, emb, win, desc, k=args.retry or K)
+        except Exception as e:  # noqa: BLE001  e.g. WMS down: skip, a re-run picks the image up again
+            print(f"  FAIL {f.stem}: {e}")
+            continue
         if old and old.get("inliers", old.get("best_inliers", 0)) >= p.get("inliers", p.get("best_inliers", 0)):
             continue
         p["seconds"] = round(time.time() - t, 1)

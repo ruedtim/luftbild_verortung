@@ -37,7 +37,7 @@ HTML = """<!doctype html><html lang="de"><head><meta charset="utf-8">
 box-shadow:0 1px 4px rgba(0,0,0,.3);max-width:360px}}</style></head><body><div id="m"></div>
 <div class="box"><b>{title}</b><br>{summary}<br><label>Deckkraft <input type="range" id="op" min="0" max="100" value="85"></label></div>
 <script>const R={data};
-const m=L.map('m');const w=l=>`https://wmts.geo.admin.ch/1.0.0/${{l}}/default/current/3857/{{z}}/{{x}}/{{y}}.jpeg`;
+const m=L.map('m',{{zoomSnap:0.25}});const w=l=>`https://wmts.geo.admin.ch/1.0.0/${{l}}/default/current/3857/{{z}}/{{x}}/{{y}}.jpeg`;
 const b={{'SWISSIMAGE':L.tileLayer(w('ch.swisstopo.swissimage'),{{maxZoom:19,attribution:'© swisstopo'}}).addTo(m),
 'Landeskarte':L.tileLayer(w('ch.swisstopo.pixelkarte-farbe'),{{maxZoom:18,attribution:'© swisstopo'}})}};
 L.control.layers(b).addTo(m);

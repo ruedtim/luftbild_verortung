@@ -119,6 +119,7 @@ const badge = it => `<span class="badge b-${cls(it)}">${it.status==='ok'?fmt(it.
     .map(([a,b])=>`<div class="stat"><b>${a}</b><span>${b}</span></div>`).join('');
   if (window.NOTE) { const nt = document.getElementById('note'); nt.innerHTML = window.NOTE; nt.hidden = false; }
 })();
+if (!D.some(d => d.status !== 'ok')) document.querySelectorAll('#fStat option[value=fail], #fConf option[value=review]').forEach(o => o.remove());
 const decs = [...new Set(D.map(d=>Math.floor(d.year/10)*10))].sort();
 document.getElementById('fDec').innerHTML += decs.map(d=>`<option value="${d}">${d}er</option>`).join('');
 

@@ -4,7 +4,7 @@ Historische Senkrecht-Luftbilder des Kantons Zürich werden allein aus dem Bildi
 Bildumriss und Zentrum (LV95/WGS84), Konfidenz, Gemeinden und abgebildete Ortsnamen mit Koordinaten.
 Alle Modelle laufen lokal (Hugging Face; Apple-GPU/MPS oder CPU); Referenzdaten kommen aus offenen swisstopo-Diensten.
 
-**Online-Beispiel:** [Testbilder, Vorhersage und Überblendung «damals/heute»](https://ruedtim.github.io/luftbild_verortung/) (Auswahl aus dem Testlauf)
+**Online-Beispiel:** [Testbilder, Vorhersage und Überblendung «damals/heute»](https://ruedtim.github.io/luftbild_verortung/) (die verorteten Bilder aus dem Lauf mit 30 StAZH-Luftbildern von 1981)
 
 ## So funktioniert's
 
@@ -19,9 +19,21 @@ Am Ende stehen:
 - die betroffenen Gemeinden
 - die Orte, Quartiere und Gewässer, die im Bild liegen
 
-Beispiel (`beispiele/testbild_1984`): Sicherheit «hoch» (1'324 übereinstimmende Punktpaare), Bildmitte im Raum Winterthur
-(LV95 2698801 / 1260114), Gemeinden Elsau, Illnau-Effretikon, Winterthur und Zell (ZH), Orte u. a. Winterthur, Iberg,
-Mattenbach und Seen.
+Zwei Beispiele aus dem Lauf mit 30 StAZH-Luftbildern von 1981 (Ausgabe von `locate.py`: das Luftbild liegt halbtransparent
+auf dem heutigen Orthofoto, rot der berechnete Umriss, gelb die Ortsnamen im Bild):
+
+**Horgen** (Foto 1981_012_1813): Sicherheit «hoch» (1'303 übereinstimmende Punktpaare), Bildmitte LV95 2687238 / 1234239,
+Gemeinde Horgen, Orte u. a. Horgen, Horgenberg, Moorschwand und Oberhof. Das Bild ist gegenüber Norden um 90° gedreht;
+auch das findet das Programm selbst heraus.
+
+![Luftbild von 1981 über dem heutigen Orthofoto: Horgen am Zürichsee](beispiele/stazh_1981_012_1813.jpg)
+
+**Flugplatz Dübendorf** (Foto 1981_014_2340): Sicherheit «hoch» (1'483 Punktpaare), Bildmitte LV95 2690248 / 1250735,
+Gemeinden Dietlikon, Dübendorf und Wangen-Brüttisellen, Orte u. a. Dübendorf (Flugplatzareal), Gfenn und Sonnenberg.
+
+![Luftbild von 1981 über dem heutigen Orthofoto: Flugplatz Dübendorf](beispiele/stazh_1981_014_2340.jpg)
+
+Hintergrund: SWISSIMAGE © swisstopo; Luftbilder 1981 © GIS-ZH, Kanton Zürich.
 
 ### Die Idee: grob suchen, dann genau prüfen
 
@@ -77,12 +89,17 @@ Das Mass ist die Zahl der zusammenpassenden Punktpaare:
 
 ### Wie gut funktioniert es?
 
-Im Testlauf mit 240 Luftbildern aus den Jahren 1930 bis 2000 (das Programm kannte deren wahren Ort nicht):
+Jüngster Lauf: 30 Luftbilder der StAZH-Sammlung von 1981 (Swissair-Aufnahmen von 30 verschiedenen Fluglinien,
+zufällig gewählt). Das Programm kannte weder Ort noch Metadaten:
 
-- **140 Bilder (58 %) wurden verortet**, 100 blieben «nicht verortet».
-- Die verorteten Bilder lagen im Median **75 m** neben der Lage laut Archiv, **kein einziges mehr als 500 m**.
-- Neuere Scans werden häufiger gefunden als sehr alte: GIS-ZH-Luftbilder aus den 1980er/90er-Jahren zu 83–90 %,
-  swisstopo-Bilder aus den 1930er-Jahren zu 24 %.
+- **29 von 30 Bildern wurden verortet**, alle mit Konfidenz «hoch» und keines falsch.
+- Die Bildmitte lag im Median **234 m** neben dem Archiv-Zentrum, bei 28 von 29 unter 500 m, höchstens 642 m. Die
+  Archivangaben von 1981 sind Sollpositionen entlang der Fluglinien und selbst nur auf einige 100 m genau; die
+  Abweichung enthält also auch deren Ungenauigkeit.
+- Der berechnete Umriss überlappt den Archiv-Umriss im Median zu 73 %.
+
+Früherer Lauf mit Bildern aus swisstopo LUBIS und GIS-ZH (1930–2000): Die 140 verorteten Bilder lagen im Median **75 m**
+neben der Lage laut Archiv, **kein einziges mehr als 500 m**.
 
 Details siehe [Ergebnisse](#ergebnisse).
 
@@ -95,8 +112,7 @@ Karten- und Ortsdaten von swisstopo abgerufen (siehe [Daten: lokal oder live?](#
 
 - Ausgelegt auf **Senkrechtaufnahmen** (Blick von oben) im **Kanton Zürich** (plus 500 m Puffer); Schrägaufnahmen und
   andere Regionen sind nicht vorgesehen.
-- Gefunden wird nur, was genug wiedererkennbare Strukturen zeigt. Warum im Testlauf 42 % unverortet blieben, wurde noch
-  nicht untersucht.
+- Gefunden wird nur, was genug wiedererkennbare Strukturen zeigt (Siedlungen, Strassen, Waldränder, Gewässer).
 - Prototyp (PoC), kein fertiges Produkt.
 
 ## Einzelnes Bild verorten
@@ -121,7 +137,17 @@ cd src
 ../.venv/bin/python localize.py --retry 50                    # zweiter Durchgang für unsichere Bilder
 ../.venv/bin/python evaluate.py                               # output/results.csv, results.geojson
 ../.venv/bin/python make_map.py                               # output/map/index.html (vorschau.html lokal)
-../.venv/bin/python make_map.py --demo 40 --out ../docs       # kleine Online-Demo für GitHub Pages (~15 MB)
+```
+
+Zusatz-Testset mit den Luftbildern 1981 aus der StAZH-Liste (Excel-Datei mit Bildnummern und Koordinaten); Ablauf wie
+oben, mit `--set stazh`, Ergebnisse unter `output/stazh/`:
+
+```bash
+cd src
+../.venv/bin/python fetch_stazh.py pfad/zur/liste.xlsx --n 30    # je Fluglinie ein Bild -> data/images_stazh/
+../.venv/bin/python localize.py --set stazh
+../.venv/bin/python evaluate.py --set stazh                      # output/stazh/results.csv, results.geojson
+../.venv/bin/python make_map.py --set stazh --demo 40 --only-localized --out ../docs   # Online-Demo für GitHub Pages
 ```
 
 swissNAMES3D muss einmalig nach `data/cache/names/` entpackt werden:
@@ -230,30 +256,45 @@ Jahr laut Archiv liegen getrennt in `data/gt/ground_truth.json`; der Localizer l
 Die Archiv-Metadaten sind selbst nicht exakt (bei GIS-ZH nur ein achsparalleles Rechteck um das Bild); die gemessenen
 Abweichungen sind deshalb als Grössenordnung zu lesen.
 
+Zusätzlich gibt es ein Testset aus der StAZH-Liste der Luftbilder 1981 (1'292 Bilder auf 31 Fluglinien,
+[src/fetch_stazh.py](src/fetch_stazh.py)): Aus 30 der 31 Fluglinien wird je ein Bild zufällig gewählt (Seed 42; Bilder, die
+schon im ersten Testset sind, ausgenommen), vom GIS-ZH-Scan (rund 190 MB je TIFF) auf höchstens 2048 px verkleinert, 5 % Rand
+abgeschnitten und ohne Metadaten in `data/images_stazh/` gespeichert. Lage und Umriss laut Liste liegen in
+`data/gt/stazh_1981.json`. Verortung und Auswertung laufen wie oben, mit `--set stazh`.
+
 ### Ergebnisse
 
-Stand: `output/results.csv` (240 Bilder).
+**Jüngster Lauf: 30 StAZH-Bilder von 1981** (`output/stazh/results.csv`).
 
-- 140 von 240 verortet (58 %), davon 138 mit Konfidenz «hoch» und 2 «mittel».
+- 29 von 30 verortet, alle mit Konfidenz «hoch» (274 bis 1'879 Inlier, Median 705).
+- Zentrumsfehler gegenüber dem Archiv-Zentrum: Median 234 m, Mittel 232 m, 90 % unter 384 m, maximal 642 m; 55 % unter
+  250 m, 28 von 29 unter 500 m, alle unter 1 km. Die Abweichung ist vor allem ost-westlich (quer zu den Fluglinien); die
+  Archiv-Ostkoordinate schwankt innerhalb einer Fluglinie typischerweise nur um etwa 20 m (Standardabweichung): Es sind
+  Sollwerte, und ihre Ungenauigkeit steckt in den Zahlen.
+- Überlappung der Umrisse (IoU): Median 0,73.
+- Ortsnamen: Siedlungs- und Quartiernamen von Vorhersage und Archiv-Umriss stimmen im Mittel zu 72 % überein (Jaccard).
+- Alle 29 Bilder sind gegenüber Norden um 90° oder 270° gedreht; die Drehung fand das Programm jeweils selbst.
+
+**Früherer Lauf mit Bildern aus swisstopo LUBIS und GIS-ZH, 1930–2000** (`output/results.csv`; der zweite Durchgang
+`--retry` wurde bei Bild 212 von 240 beendet).
+
+- 140 Bilder verortet, davon 138 mit Konfidenz «hoch» und 2 «mittel».
 - Zentrumsfehler: Median 75 m, Mittel 93 m, 90 % unter 185 m, maximal 400 m; 59 % unter 100 m, 97 % unter 250 m,
   alle unter 500 m.
 - Überlappung der Umrisse (IoU): Median 0,88.
 - Ortsnamen: Siedlungs- und Quartiernamen von Vorhersage und Archiv-Umriss stimmen im Mittel zu 83 % überein (Jaccard).
 
-| Quelle | Zeitraum | Bilder | verortet |
+| Quelle | Zeitraum | verortete Bilder | Median-Fehler |
 | --- | --- | --- | --- |
-| swisstopo (LUBIS) | 1930er | 25 | 6 (24 %) |
-| swisstopo (LUBIS) | 1940er | 25 | 11 (44 %) |
-| swisstopo (LUBIS) | 1950er | 25 | 10 (40 %) |
-| swisstopo (LUBIS) | 1960er | 25 | 17 (68 %) |
-| swisstopo (LUBIS) | 1970er | 25 | 16 (64 %) |
-| swisstopo (LUBIS) | 1980er | 25 | 19 (76 %) |
-| swisstopo (LUBIS) | 1990er | 25 | 8 (32 %) |
-| swisstopo (LUBIS) | 2000er | 25 | 18 (72 %) |
-| GIS-ZH | 1981–2000 | 40 | 35 (88 %) |
-
-Warum die Quote zwischen den Jahrzehnten schwankt (etwa 32 % bei den swisstopo-Bildern der 1990er), wurde nicht
-untersucht.
+| swisstopo (LUBIS) | 1930er | 6 | 61 m |
+| swisstopo (LUBIS) | 1940er | 11 | 79 m |
+| swisstopo (LUBIS) | 1950er | 10 | 122 m |
+| swisstopo (LUBIS) | 1960er | 17 | 159 m |
+| swisstopo (LUBIS) | 1970er | 16 | 106 m |
+| swisstopo (LUBIS) | 1980er | 19 | 60 m |
+| swisstopo (LUBIS) | 1990er | 8 | 83 m |
+| swisstopo (LUBIS) | 2000er | 18 | 16 m |
+| GIS-ZH | 1981–2000 | 35 | 65 m |
 
 ### Karte
 
@@ -266,9 +307,10 @@ untersucht.
 - Regler zum Überblenden zwischen «damals» und «heute»
 
 `--demo N` erzeugt eine kleine öffentliche Variante: eine zufällige, nach Quelle und Jahrzehnt geschichtete Auswahl von
-etwa N Bildern, die Kennzahlen im Kopf gelten weiterhin für alle. Das ist die Seite in `docs/`, die GitHub Pages
-ausliefert (~15 MB statt ~40 MB der Vollkarte). Einzige externe Ressource ist die Kartenbibliothek Leaflet von
-`cdnjs.cloudflare.com`; Web-Fonts werden nicht geladen.
+etwa N Bildern, die Kennzahlen im Kopf gelten weiterhin für alle. Mit `--only-localized` bleiben Bilder ohne Ergebnis
+weg. Das ist die Seite in `docs/`, die GitHub Pages ausliefert: die 29 verorteten Bilder des Laufs mit 30 StAZH-Bildern
+(~16 MB). Einzige externe Ressource ist die Kartenbibliothek Leaflet von `cdnjs.cloudflare.com`; Web-Fonts werden nicht
+geladen.
 
 ## Dateien
 
@@ -278,6 +320,7 @@ Code:
 | --- | --- |
 | `src/locate.py` | Einzelbild verorten (Ende-zu-Ende), schreibt `.json` und `.html` |
 | `src/fetch_images.py` | Testdatensatz holen (LUBIS, GIS-ZH), Metadaten abtrennen |
+| `src/fetch_stazh.py` | Zusatz-Testset aus der StAZH-Liste 1981 holen |
 | `src/reference.py` | SWISSIMAGE per WMS: Kantons-Mosaik und beliebige Ausschnitte (gecacht) |
 | `src/retrieval.py` | DINOv2-Index und Grobsuche |
 | `src/matching.py` | SuperPoint/LightGlue-Abgleich, Homographie, Plausibilitätsprüfung |
@@ -299,9 +342,10 @@ Daten und Ergebnisse:
 | `output/predictions_pass1.json` | Stand nach dem ersten Durchgang (vor `--retry`) |
 | `output/results.csv`, `results.geojson` | Ergebnisse mit Fehlern, Gemeinden, Orten |
 | `output/summary.txt` | Kennzahlen des Testlaufs (Ausgabe von `evaluate.py`) |
+| `output/stazh/` | dasselbe für den Lauf mit den 30 StAZH-Bildern (`predictions.json`, `results.csv`, `results.geojson`, `summary.txt`) |
 | `output/map/` | Vollkarte; lokal erzeugt, nicht im Repo |
 | `docs/` | Online-Demo für GitHub Pages |
-| `beispiele/` | Beispielbilder und -ergebnisse für `locate.py` |
+| `beispiele/` | Screenshots der Beispiele oben (`stazh_*.jpg`) sowie ältere Beispielbilder und -ergebnisse für `locate.py` |
 
 ## Quellen und Lizenzen
 

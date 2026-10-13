@@ -7,11 +7,12 @@ cross-fades between then and now. Data, thumbnails and the Leaflet CSS are inlin
 the only other files are the base image and the per-photo WebPs.
 
     python make_map.py                            # full map -> output/map (index.html, vorschau.html)
-    python make_map.py --demo 40 --out ../docs    # small public demo for GitHub Pages
+    python make_map.py --set stazh --demo 40 --only-localized --out ../docs   # public demo for GitHub Pages
 
---demo N keeps only about N random photos (stratified by source and decade, fixed seed) to keep
-the page small; the header statistics still describe all photos. It writes an index.html with a
-complete page skeleton (what Pages serves), leaves out the Google web fonts and adds .nojekyll.
+--set picks the image set (see common.SETS). --demo N keeps only about N random photos (stratified
+by source and decade, fixed seed) to keep the page small; the header statistics still describe all
+photos. It writes an index.html with a complete page skeleton (what Pages serves), leaves out the
+Google web fonts and adds .nojekyll. --only-localized leaves photos without a result off the page.
 """
 import argparse
 import base64
@@ -29,10 +30,9 @@ import numpy as np
 from PIL import Image
 from pyproj import Transformer
 
-from common import CACHE, GT, IMAGES, OUT
+from common import CACHE, ROOT, SETS
 from reference import fetch, mosaic, mosaic_bounds
 
-MAP = OUT / "map"  # default output folder
 LV_TO_WGS = Transformer.from_crs(2056, 4326, always_xy=True)
 LV_TO_MERC = Transformer.from_crs(2056, 3857, always_xy=True)
 MERC_TO_LV = Transformer.from_crs(3857, 2056, always_xy=True)
@@ -127,18 +127,22 @@ def run_stats(shown, preds, gt, res):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--set", choices=SETS, default="test", help="image set (default: the 240-image test set)")
     ap.add_argument("--demo", type=int, default=0, metavar="N", help="public demo with about N random photos")
-    ap.add_argument("--out", default=str(MAP), help="output folder (default: output/map)")
+    ap.add_argument("--only-localized", action="store_true", help="leave photos without a result off the page")
+    ap.add_argument("--out", default=None, help="output folder (default: <set output>/map)")
     args = ap.parse_args()
-    out = Path(args.out).resolve()
+    cfg = SETS[args.set]
+    out = Path(args.out).resolve() if args.out else cfg["out"] / "map"
     ov = out / "overlays"
 
-    gt = json.loads((GT / "ground_truth.json").read_text())
-    preds = json.loads((OUT / "predictions.json").read_text())
-    res = {f["properties"]["image"]: f for f in json.loads((OUT / "results.geojson").read_text())["features"]}
+    gt = json.loads(cfg["gt"].read_text())
+    preds = json.loads((cfg["out"] / "predictions.json").read_text())
+    res = {f["properties"]["image"]: f for f in json.loads((cfg["out"] / "results.geojson").read_text())["features"]}
     # a prediction newer than results.geojson (run still in progress) is skipped
-    shown = [k for k, p in preds.items() if p["status"] != "ok" or gt[k]["image"] in res]
-    stats = run_stats(shown, preds, gt, res)
+    processed = [k for k, p in preds.items() if p["status"] != "ok" or gt[k]["image"] in res]
+    stats = run_stats(processed, preds, gt, res)
+    shown = [k for k in processed if preds[k]["status"] == "ok"] if args.only_localized else processed
     keep = demo_sample(shown, gt, args.demo) if args.demo else set(shown)
     shutil.rmtree(ov, ignore_errors=True)
     ov.mkdir(parents=True)
@@ -146,7 +150,7 @@ def main():
     items = []
     for k in sorted((k for k in shown if k in keep), key=lambda k: gt[k]["year"]):
         p, g = preds[k], gt[k]
-        img = np.array(Image.open(IMAGES / g["image"]))
+        img = np.array(Image.open(cfg["images"] / g["image"]))
         th = Image.fromarray(img).convert("L")
         th.thumbnail((160, 160))
         it = dict(id=k, year=g["year"], date=g["date"], source=g["source"], src_id=g["id"],
@@ -168,13 +172,15 @@ def main():
                                   ll=list(reversed(LV_TO_WGS.transform(x["e"], x["n"]))),
                                   lv=[round(x["e"]), round(x["n"])]) for x in props["names"]])
         items.append(it)
-    html = (OUT.parent / "src" / "map_template.html").read_text()
+    html = (ROOT / "src" / "map_template.html").read_text()
     html = html.replace("/*LEAFLET_CSS*/", (CACHE / "leaflet.min.css").read_text())
     data = ("window.DATA = " + json.dumps(items) + ";\nwindow.BASE = "
             + json.dumps(dict(url="base.jpg", bounds=base_bounds)) + ";")
     if args.demo:
-        note = (f"Online-Demo: zufällige Auswahl von {len(items)} der {stats['n']} Testbilder; die Kennzahlen oben "
-                f"gelten für alle {stats['n']}. <a href='{REPO_URL}'>Code und Dokumentation</a>")
+        what = (f"die {len(items)} verorteten von {stats['n']} Testbildern" if args.only_localized
+                else f"zufällige Auswahl von {len(items)} der {stats['n']} Testbilder")
+        note = (f"Online-Demo: {what}; die Kennzahlen oben gelten für alle {stats['n']}. "
+                f"<a href='{REPO_URL}'>Code und Dokumentation</a>")
         data += f"\nwindow.STATS = {json.dumps(stats)};\nwindow.NOTE = {json.dumps(note)};"
         html = re.sub(r"<link[^>]*fonts\.g[^>]*>\n?", "", html)  # public page: no third-party web fonts
         html = html.replace("/*DATA*/", data)

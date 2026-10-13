@@ -14,6 +14,12 @@ OUT = ROOT / "output"
 for p in (IMAGES, GT, CACHE, OUT):
     p.mkdir(parents=True, exist_ok=True)
 
+# Image sets the pipeline scripts can work on (--set): query images, ground truth, output folder.
+SETS = {
+    "test": dict(images=IMAGES, gt=GT / "ground_truth.json", out=OUT),
+    "stazh": dict(images=DATA / "images_stazh", gt=GT / "stazh_1981.json", out=OUT / "stazh"),
+}
+
 API = "https://api3.geo.admin.ch/rest/services/api/MapServer"
 WMS_CH = "https://wms.geo.admin.ch/"
 S = requests.Session()

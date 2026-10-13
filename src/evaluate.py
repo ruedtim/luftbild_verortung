@@ -2,6 +2,7 @@
 
 Writes output/results.csv, output/results.geojson (WGS84) and prints a summary.
 """
+import argparse
 import csv
 import json
 from collections import defaultdict
@@ -11,7 +12,7 @@ from pyproj import Transformer
 from shapely.geometry import Point, Polygon, mapping, shape
 from shapely.ops import transform
 
-from common import GT, OUT
+from common import SETS
 from names import municipalities, names_in
 
 TO_WGS = Transformer.from_crs(2056, 4326, always_xy=True).transform
@@ -25,7 +26,11 @@ def confidence(n):
 
 
 def main():
-    gt = json.loads((GT / "ground_truth.json").read_text())
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--set", choices=SETS, default="test", help="image set (default: the 240-image test set)")
+    cfg = SETS[ap.parse_args().set]
+    OUT = cfg["out"]
+    gt = json.loads(cfg["gt"].read_text())
     preds = json.loads((OUT / "predictions.json").read_text())
     rows, feats = [], []
     for k, p in sorted(preds.items()):
